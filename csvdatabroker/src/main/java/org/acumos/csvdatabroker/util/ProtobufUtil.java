@@ -83,6 +83,7 @@ public class ProtobufUtil {
 				  protobuf.getMessages().add(message);
 			  }
 		  } else {
+			  // only recognize the first 'service' in the file
 			  if(line.startsWith("service") && !serviceDone){
 				   serviceBegin = true; 
 				   serviceStr = new StringBuilder();
@@ -105,7 +106,10 @@ public class ProtobufUtil {
 				  ProtobufOption option = parseOption(line.trim());
 				  protobuf.getOptions().add(option);
 			  }
+
+			  // PETER: add import here?
 			  
+			  // TODO maybe should give a warning about ignored lines here
 		  }
 		}
 		scanner.close();

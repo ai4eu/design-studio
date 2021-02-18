@@ -160,6 +160,7 @@ public class CompositeSolutionProtoFileGeneratorServiceImpl implements IComposit
 
 	@Override
 	public Protobuf parseProtobuf(String protoData) {
+		// TODO should use ProtobufUtil!
 			Scanner scanner = new Scanner(protoData);
 			Protobuf protobuf= new Protobuf();
 			boolean serviceBegin = false; 
@@ -217,6 +218,7 @@ public class CompositeSolutionProtoFileGeneratorServiceImpl implements IComposit
 					  String value = line.substring(line.indexOf(" ")+1, line.length()-1);
 					  protobuf.setPackageName(value.replace("\"", "").trim());
 				  }
+
 				  
 			  }
 			}

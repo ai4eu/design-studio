@@ -959,6 +959,8 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 						}
 
 					}
+
+					// create empty cdump artifact and upload (TODO why?)
 					Gson gson = new Gson();
 					String emptyCdumpJson = gson.toJson(cdump);
 					path = DSUtil.createCdumpPath(userId, confprops.getToscaOutputFolder());
@@ -967,6 +969,8 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					Artifact cdumpArtifact = new Artifact(cdumpFileName, "json", solutionId, version, path,emptyCdumpJson.length());
 					// upload the file to repository & no need to update DB entry for MLPArtifact as it been already update while save 
 					uploadFilesToRepository(solutionId, revisionId, version, cdumpArtifact);
+
+					// create real cdump artifact and upload
 					result = createAndUploadBluePrint(userId, solutionId, solutionName, version, cdump);
 				}
 			} else if (null != nodes && nodes.size() == 1 && (null == relationsList || relationsList.isEmpty())) {
@@ -977,6 +981,8 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 				if (node.getType().getName().equals(MLMODEL_TYPE)) {
 					cdump.setValidSolution(true);
 					cdump.setMtime(new SimpleDateFormat(confprops.getDateFormat()).format(currentDate));
+
+					// create empty cdump artifact and upload (TODO why?)
 					Gson gson = new Gson();
 					String emptyCdumpJson = gson.toJson(cdump);
 					path = DSUtil.createCdumpPath(userId, confprops.getToscaOutputFolder());
@@ -985,6 +991,8 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					Artifact cdumpArtifact = new Artifact(cdumpFileName, "json", solutionId, version, path,emptyCdumpJson.length());
 					// upload the file to repository & no need to update DB entry for MLPArtifact as it been already update while save 
 					uploadFilesToRepository(solutionId, revisionId, version, cdumpArtifact);
+
+					// create real cdump artifact and upload
 					result = createAndUploadBluePrint(userId, solutionId, solutionName, version, cdump);
 				} else {
 					resultVo.setSuccess("false");
