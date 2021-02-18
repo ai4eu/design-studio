@@ -208,4 +208,10 @@ public class Nodes implements Serializable {
 	public void setProtoUri(String protoUri) {
 		this.protoUri = protoUri;
 	}
+
+	@Override
+	public String toString() {
+		return this.getClass().getName() + "[name="+getName()+",nodeId="+getNodeId()+",nodeSolutionId="+getNodeSolutionId()+",requirements[]="+String.join(" ; ", java.util.Arrays.toString(getRequirements()))+",properties[]="+String.join(" ; ", java.util.Arrays.toString(getProperties()))+",capabilities[]="+String.join(" ; ", java.util.Arrays.toString(getCapabilities()))+",type="+getType().getName()+",protoUri="+getProtoUri()+"]";
+
+	}
 }

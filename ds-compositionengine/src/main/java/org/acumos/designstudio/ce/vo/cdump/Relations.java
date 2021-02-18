@@ -119,9 +119,12 @@ public class Relations implements Serializable{
 	public void setRelationship(List<Relationship> relationship) {
 		this.relationship = relationship;
 	}
-	
-	
-	
-	
 
+	@Override
+	public String toString() {
+		return "Relations[linkName="+getLinkName()+",linkId="+getLinkId()+
+			",sourceNodeName="+getSourceNodeName()+",sourceNodeId="+getSourceNodeId()+",sourceNodeRequirement="+getSourceNodeRequirement()+
+			",targetNodeName="+getTargetNodeName()+",targetNodeId="+getTargetNodeId()+",targetNodeCapability="+getTargetNodeCapability()+
+			",relationship="+String.valueOf(getRelationship())+"]";
+	}
 }

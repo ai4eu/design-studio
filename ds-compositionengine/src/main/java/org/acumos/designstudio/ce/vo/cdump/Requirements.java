@@ -82,7 +82,9 @@ public class Requirements implements Serializable{
 		this.target_type = target_type;
 	}
 	
-	
-	
+	@Override
+	public String toString() {
+		return this.getClass().getName() + "[name="+getName()+",relationship="+getRelationship()+",target="+getTarget().toString()+", target_type="+getTarget_type()+", capability="+getCapability().toString()+"]";
+	}
 
 }
