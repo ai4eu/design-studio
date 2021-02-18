@@ -125,11 +125,8 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
     
     private static final String DATABROKER_TYPE = "DataBroker";
     
+	// this seems to exist because String.split("+", str) will not work without escaping + to "\\+" (or similar)
     private static final String OPERATION_EXTRACTOR = "%PLUS%";
-    
-    private static final String FIRST_NODE_POSITION = "first";
-    
-    private static final String LAST_NODE_POSITION = "last";
     
 	@Autowired
 	private Properties props;
@@ -919,6 +916,9 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 
 			// Check for the Nodes and Relations in the CDUMP is empty or not
 			if (null != nodes && null != relationsList && !relationsList.isEmpty()) {
+
+				// We have some nodes and some relations.
+
 				resultVo = validateComposition(cdump);
 				if(resultVo.getSuccess().equals("true")){
 					// On successful validation generate the BluePrint file
@@ -927,42 +927,38 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					cdump.setValidSolution(true);
 					cdump.setMtime(new SimpleDateFormat(confprops.getDateFormat()).format(currentDate));
 
-					String firstNodeId = getNodeIdForPosition(cdump, FIRST_NODE_POSITION);
-					String dataBrokerTargetNodeId = null;
-					Nodes dataBrokerTargetNode = null;
-					Nodes firstNode = getNodeForId(nodes, firstNodeId);
-					String protoPayload = null;
-					if (firstNode.getType().getName().equals(DATABROKER_TYPE)) {
-						for (Relations relation : relationsList) {
-							if (relation.getSourceNodeId().equals(firstNodeId)) {
-								dataBrokerTargetNodeId = relation.getTargetNodeId();
-								dataBrokerTargetNode = getNodeForId(nodes, dataBrokerTargetNodeId);
-								// get the protobuf file string for the target model
-								String protoUri = dataBrokerTargetNode.getProtoUri();
-								ByteArrayOutputStream bytes = nexusArtifactClient.getArtifact(protoUri);
-								if (null != bytes) {
-									String protobufFile = bytes.toString();
-									// put protobufFile String in databroker
-									Property[] prop = firstNode.getProperties();
-									if (null != prop[0].getData_broker_map()) {
-										prop[0].getData_broker_map().setProtobufFile(protobufFile);
+					// set databroker information even if they are not the single unique "first node" of the solution
+					for(Nodes node: nodes) {
+
+						String dataBrokerTargetNodeId = null;
+						Nodes dataBrokerTargetNode = null;
+						if (node.getType().getName().equals(DATABROKER_TYPE)) {
+							// The first node is a data broker that provides data to the solution, we do not need an external data provider.
+							for (Relations relation : relationsList) {
+								if (relation.getSourceNodeId().equals(node.getNodeId())) {
+									dataBrokerTargetNodeId = relation.getTargetNodeId();
+									dataBrokerTargetNode = getNodeForId(nodes, dataBrokerTargetNodeId);
+									// get the protobuf file string for the target model
+									String protoUri = dataBrokerTargetNode.getProtoUri();
+									ByteArrayOutputStream bytes = nexusArtifactClient.getArtifact(protoUri);
+									if (null != bytes) {
+										String protobufFile = bytes.toString();
+										// put protobufFile String in databroker
+										Property[] prop = node.getProperties();
+										if (null != prop[0].getData_broker_map()) {
+											prop[0].getData_broker_map().setProtobufFile(protobufFile);
+										}
+										node.setProperties(prop);
+									} else {
+										logger.error("Exception Occured in ValidateCompositeSolution() : Failed to Set the ProtoBuf File in DataBrokerMap ");
+										throw new ServiceException("Exception Occured in ValidateCompositeSolution() : Failed to Set the ProtoBuf File in DataBrokerMap");
 									}
-									firstNode.setProperties(prop);
-								} else {
-									logger.error("Exception Occured in ValidateCompositeSolution() : Failed to Set the ProtoBuf File in DataBrokerMap ");
-									throw new ServiceException("Exception Occured in ValidateCompositeSolution() : Failed to Set the ProtoBuf File in DataBrokerMap");
+									break;
 								}
-								break;
 							}
 						}
-						
-						// Construct protoPayload for composite solution with Databroker.
-						protoPayload = "This solution retrieves the data from a data source, it cannot be invoked by an external client";
-					} else {
-						protoPayload = constructPayload(cdump);
-						
+
 					}
-					createAndUploadProtobuf(userId, solutionId, version, revisionId, protoPayload, cdump);
 					Gson gson = new Gson();
 					String emptyCdumpJson = gson.toJson(cdump);
 					path = DSUtil.createCdumpPath(userId, confprops.getToscaOutputFolder());
@@ -974,6 +970,9 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					result = createAndUploadBluePrint(userId, solutionId, solutionName, version, cdump);
 				}
 			} else if (null != nodes && nodes.size() == 1 && (null == relationsList || relationsList.isEmpty())) {
+
+				// We have a single node and no relations
+
 				Nodes node = nodes.get(0);
 				if (node.getType().getName().equals(MLMODEL_TYPE)) {
 					cdump.setValidSolution(true);
@@ -981,10 +980,6 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					Gson gson = new Gson();
 					String emptyCdumpJson = gson.toJson(cdump);
 					path = DSUtil.createCdumpPath(userId, confprops.getToscaOutputFolder());
-					String firstNodeSolutionId = node.getNodeSolutionId();
-					String firstNodeSolutionVersion = node.getNodeVersion();
-					String protoPayload = cspfgService.getPayload(firstNodeSolutionId, firstNodeSolutionVersion,props.getModelImageArtifactType(), "proto");
-					createAndUploadProtobuf(userId, solutionId, version, revisionId, protoPayload, cdump);
 					// Write the cdump Data to File
 					DSUtil.writeDataToFile(path, "acumos-cdump" + "-" + solutionId, "json", emptyCdumpJson);
 					Artifact cdumpArtifact = new Artifact(cdumpFileName, "json", solutionId, version, path,emptyCdumpJson.length());
@@ -1009,90 +1004,10 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 		return result;
 	}
 
-	
-
-	private void buildMessage(Protobuf node, StringBuilder strbld, String msgName) {
-		String basicProtobufTypes = props.getProtobufBasicType();
-		ProtobufMessage protoMessage;
-		List<ProtobufMessageField> messageFields;
-		//Check if already added to strbld, it wont be but still in case.
-		String temp = strbld.toString();
-		if(!temp.contains("message "+msgName)){ //if not found then include it in the strbld or else ignore.
-			protoMessage = node.getMessage(msgName);
-			strbld.append("\n");
-			strbld.append(protoMessage.toString());
-			
-			//Check for Nested Message 
-			messageFields = protoMessage.getFields();
-			String type = null;
-			for(ProtobufMessageField field : messageFields) {
-				type = field.getType();
-				if(!basicProtobufTypes.contains(type)){
-					buildMessage(node, strbld, type);
-				}
-			}
-		}
-		
-	}
-
-	private void createAndUploadProtobuf(String userId, String solutionId, String version, String revisionId, String protoPayload, Cdump cdump)
-			throws ServiceException, URISyntaxException, AcumosException {
-		
-		String path = null;
-		try { 
-			//create file locally
-			path = DSUtil.createCdumpPath(userId, confprops.getToscaOutputFolder());
-			DSUtil.writeDataToFile(path, cdump.getCname() + "-" + version, "proto", protoPayload);
-			//create ds protoArtifact and upload to Nexus repo. 
-			Artifact protoArtifact = new Artifact(cdump.getCname() + "-" + version, "proto", solutionId, version, path,protoPayload.length());
-			uploadFilesToRepository(solutionId, revisionId, version, protoArtifact);
-			
-			// add the artifact details to the DB
-			List<MLPSolutionRevision> mlpSolRevisions = null;
-			MLPArtifact mlpArtifact = null;
-			mlpArtifact = new MLPArtifact();
-			mlpArtifact.setArtifactTypeCode("MI");
-			mlpArtifact.setDescription("default.proto");
-			mlpArtifact.setUri(protoArtifact.getNexusURI());
-			mlpArtifact.setName("default.proto");
-			mlpArtifact.setUserId(userId);
-			mlpArtifact.setVersion(version);
-			mlpArtifact.setSize(protoPayload.length());
-			
-			List<MLPArtifact> mlpArtiLst = cdmsClient.getSolutionRevisionArtifacts(solutionId, revisionId);
-			
-			boolean protoArtifactExists = false;
-			for (MLPArtifact mlpArt : mlpArtiLst) {
-				boolean protoUri = mlpArt.getUri().endsWith("proto");
-				if (props.getModelImageArtifactType().equals(mlpArt.getArtifactTypeCode()) && protoUri) {
-					// update the artifact details with artifactId
-					mlpArtifact.setArtifactId(mlpArt.getArtifactId());
-					protoArtifactExists = true;
-					break;
-				}
-			}
-			
-			if(protoArtifactExists) {
-				cdmsClient.updateArtifact(mlpArtifact);
-			} else {
-				mlpArtifact = cdmsClient.createArtifact(mlpArtifact);
-				cdmsClient.addSolutionRevisionArtifact(solutionId,revisionId, mlpArtifact.getArtifactId());
-			}
-			
-		} catch (Exception e ) {
-			logger.debug("Error : Issue in createAndUploadProtobuf() : Failed to create the protobuf Artifact for Composite Solution ");
-			throw new ServiceException("  Issue in createAndUploadProtobuf() ", "333",
-					"Issue while crearting the protobuf Artifact for Composite Solution");
-		}
-	}
-
 	private DSResult validateEachNode(Cdump cdump) {
 		DSResult resultVo = new DSResult();
 		List<Nodes> nodes = cdump.getNodes();
 		List<Relations> relationsList = cdump.getRelations();
-		//Get the First and Last Model 
-		String firstNodeId = getNodeIdForPosition(cdump, FIRST_NODE_POSITION);
-		String lastNodeId = getNodeIdForPosition(cdump,LAST_NODE_POSITION);
            //For each Node : 
 		for(Nodes node : nodes){
 			//get the node type 
@@ -1100,22 +1015,7 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 		    String nodeId = node.getNodeId();
 		    switch (nodeType) {
 		        case MLMODEL_TYPE : 
-		        	 //check whether its first node
-		            if(nodeId.equals(firstNodeId)){ // Node--
-		            	//Then it should be source of only one link.
-		            	int connectedCnt = getSourceCountForNodeId(relationsList, nodeId);
-		            	if(connectedCnt == 1) {  
-		            		resultVo.setSuccess("true");
-		            		resultVo.setErrorDescription("");
-		            	} else { //Indicates its connected to multiple nodes, and validation fails.
-		            		resultVo.setSuccess("false");
-		                    resultVo.setErrorDescription("Invalid Composite Solution : MLModel \"" + node.getName() + "\" is connected to multiple Nodes");
-		            	}
-		            } else if(node.getNodeId().equals(lastNodeId)){ // --Node
-		                //Then it should be target of only one link.
-		            	int connectedCnt = getTargetCountForNodeId(relationsList, nodeId);
-		            	if(connectedCnt == 1 ) { 
-		                	//Check for correct port connected
+					// keeping indentation for easier diff reading
 		                	boolean isCorrectPortsConnected = correctPortsConnected(relationsList, nodeId);
 		                	if(isCorrectPortsConnected){
 		                		resultVo.setSuccess("true");
@@ -1124,41 +1024,9 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 		                		resultVo.setSuccess("false");
 		                        resultVo.setErrorDescription("Invalid Composite Solution : Incorrect ports are connected to MLModel \"" + node.getName() + "\"");
 							}
-		            	} else {
-		            		//Indicates multiple nodes are connected to the Node and vlaidation fails. 
-		            		resultVo.setSuccess("false");
-		                    resultVo.setErrorDescription("Invalid Composite Solution : Multiple Nodes are connected to MLModel \""+ node.getName() +"\"");
-		            	}
-		            	
-		            } else { // --Node--
-		            	 //It should be source of one link and target of another one link. 
-		            	int connectedCnt = getTargetCountForNodeId(relationsList, nodeId);
-		            	if(connectedCnt == 1 ) {
-		            		connectedCnt = getSourceCountForNodeId(relationsList, nodeId);
-		                	if(connectedCnt == 1) {  
-		                		//Check for correct port connected
-		                    	boolean isCorrectPortsConnected = correctPortsConnected(relationsList, nodeId);
-		                    	if(isCorrectPortsConnected){
-		                    		resultVo.setSuccess("true");
-		                    		resultVo.setErrorDescription("");
-		                    	}else {
-		                    		resultVo.setSuccess("false");
-		                            resultVo.setErrorDescription("Invalid Composite Solution : Incorrect ports are connected to MLModel \"" + node.getName() + "\"");
-								}
-		                	} else { //Indicates its connected to multiple nodes, and validation fails.
-		                		resultVo.setSuccess("false");
-		                        resultVo.setErrorDescription("Invalid Composite Solution : MLModel \"" + node.getName() + "\" is connected to multiple Nodes");
-		                	}
-		            	} else {
-		            		//Indicates multiple nodes are connected to the Node and vlaidation fails. 
-		            		resultVo.setSuccess("false");
-		                    resultVo.setErrorDescription("Invalid Composite Solution : Multiple Nodes are connected to MLModel \""+ node.getName() +"\"");
-		            	}
-					}
 		            break;
 		        case DATABROKER_TYPE : 
-		        	//DataBroker should be the first Node 
-				if (nodeId.equals(firstNodeId)) { // Node--
+				{
 					// Then it should be source of only one link.
 					int connectedCnt = getSourceCountForNodeId(relationsList, nodeId);
 					if (connectedCnt == 1) {
@@ -1217,24 +1085,12 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 						resultVo.setSuccess("false");
 						resultVo.setErrorDescription("Invalid Composite Solution : DataBroker \"" + node.getName() + "\" is connected to multiple Nodes");
 					}
-
-				} else {
-		        	   resultVo.setSuccess("false");
-		               resultVo.setErrorDescription("Invalid Composite Solution : DataBroker \"" + node.getName() + "\" should be the first Node");
-		           }
+				}
 		        	break;
 				case DATAMAPPER_TYPE : 
-					// Datamapper should not be the first node
-					if (node.getNodeId().equals(firstNodeId)) {
-						resultVo.setSuccess("false");
-						resultVo.setErrorDescription("Invalid Composite Solution : DataMapper \""
-								+ node.getName() + "\" should not be the first Node");
-					} else if (node.getNodeId().equals(lastNodeId)) {
-						resultVo.setSuccess("false");
-						resultVo.setErrorDescription("Invalid Composite Solution : DataMapper \""
-								+ node.getName() + "\" should not be the Last Node");
-					} else {
-						// Then it should be Target of only one link.
+					// Datamapper should be the target of only one link.
+					// keeping indentation for easier diff reading
+						{
 						int connectedCnt = getTargetCountForNodeId(relationsList, nodeId);
 		            	if(connectedCnt == 1 ) {
 		            		// Then it should be source of only one link.
@@ -1279,17 +1135,7 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					}
 					break;
 				case SPLITTER_TYPE:
-					// Should not be the first node
-					if (node.getNodeId().equals(firstNodeId)) {
-						resultVo.setSuccess("false");
-						resultVo.setErrorDescription("Invalid Composite Solution : Splitter \""
-								+ node.getName() + "\" should not be the first Node");
-					} else if (node.getNodeId().equals(lastNodeId)) { // It should not be last node i.e, should be
-						// connected either one or more nodes.
-						resultVo.setSuccess("false");
-						resultVo.setErrorDescription("Invalid Composite Solution : Splitter \""
-								+ node.getName() + "\" should not be the Last Node");
-					}else if("Parameter-based".equals(node.getProperties()[0].getSplitter_map().getSplitter_type()) && (null == node.getProperties()[0].getSplitter_map().getMap_outputs() || null == node.getProperties()[0].getSplitter_map().getMap_inputs())){
+					if("Parameter-based".equals(node.getProperties()[0].getSplitter_map().getSplitter_type()) && (null == node.getProperties()[0].getSplitter_map().getMap_outputs() || null == node.getProperties()[0].getSplitter_map().getMap_inputs())){
 						resultVo.setSuccess("false");
 						resultVo.setErrorDescription("Invalid Composite Solution : Splitter \""
 								+ node.getName() + "\" Mapping Details Should not be empty");
@@ -1356,17 +1202,7 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					}
 					break;
 		        case COLLATOR_TYPE : 
-		        	// Should not be the first node
-					if (node.getNodeId().equals(firstNodeId)) {
-						resultVo.setSuccess("false");
-						resultVo.setErrorDescription("Invalid Composite Solution : Collator \""
-								+ node.getName() + "\" should not be the first Node");
-					} else if (node.getNodeId().equals(lastNodeId)) { // It should not be last node i.e, should be
-						// connected either one or more nodes.
-						resultVo.setSuccess("false");
-						resultVo.setErrorDescription("Invalid Composite Solution : Collator \""
-								+ node.getName() + "\" should not be the Last Node");
-					}else if("Parameter-based".equals(node.getProperties()[0].getCollator_map().getCollator_type()) && (null == node.getProperties()[0].getCollator_map().getMap_outputs() || null == node.getProperties()[0].getCollator_map().getMap_inputs())){
+					if("Parameter-based".equals(node.getProperties()[0].getCollator_map().getCollator_type()) && (null == node.getProperties()[0].getCollator_map().getMap_outputs() || null == node.getProperties()[0].getCollator_map().getMap_inputs())){
 						resultVo.setSuccess("false");
 						resultVo.setErrorDescription("Invalid Composite Solution : Collator \""
 								+ node.getName() + "\" Mapping Details Should not be empty");
@@ -1520,29 +1356,14 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 	 */
 	private DSResult validateComposition(Cdump cdump) {
 		DSResult result = new DSResult();
+
 		List<Nodes> nodes = cdump.getNodes();
 		List<Relations> relationsList = cdump.getRelations();
+
 		//check if any isolated node 
 		List<String> isolatedNodesName = getIsolatedNodesName(nodes, relationsList);
 		if(isolatedNodesName.isEmpty()){
-			//Composite solution should have only one first Node
-			List<String> firstNodeNames = getNodesForPosition(cdump, FIRST_NODE_POSITION);
-			if(firstNodeNames.size() == 1){
-				//Composite solution should have only one last Node
-				List<String> lastNodeNames = getNodesForPosition(cdump, LAST_NODE_POSITION);
-				if(lastNodeNames.size() == 1){
-						result = validateEachNode(cdump);
-				} else {
-					result.setSuccess("false");
-					result.setErrorDescription("Invalid Composite Solution : Nodes " + lastNodeNames + " are not connected");
-				}
-			} else if (firstNodeNames.size() == 0) { 
-				result.setSuccess("false");
-				result.setErrorDescription("Invalid Composite Solution : Cyclic Graph is not permitted");
-			} else {
-				result.setSuccess("false");
-				result.setErrorDescription("Invalid Composite Solution : Nodes " + firstNodeNames + " are not connected");
-			}
+			result = validateEachNode(cdump);
 		} else {
 			result.setSuccess("false");
 			result.setErrorDescription("Invalid Composite Solution : " + isolatedNodesName + " are isolated nodes");
@@ -1568,6 +1389,9 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 	}
 
 	private boolean correctPortsConnected(List<Relations> relationsList, String nodeId) {
+		// checks if all services of all nodes that are connected such that their output (=return value) is used
+		// are also connected on their input of the respective service
+		// (this fails for initial nodes and is never called for initial nodes in the original code)
 		boolean isCorrectPortsConnected =  true;//ValidateCorrectPortsConnected(cdump);
 		String srcOperation = null;
 		String trgOperation = null;
@@ -1575,7 +1399,9 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 			if(nodeId.equals(rel.getSourceNodeId())){
 				srcOperation = rel.getSourceNodeRequirement().replace("+", OPERATION_EXTRACTOR);
 				srcOperation = srcOperation.split(OPERATION_EXTRACTOR)[0];
-				//Now check if same input port is connected or not and its not the first node. 
+				// this connection is ok if either no input is required (empty input) or if some other node is connected to that input
+				// TODO check if input is google.protobuf.Empty (for that we need to fix the component that stores the cdump)
+				//Now check if same input port is connected or not
 					boolean isSameportConnected = false;
 					for (Relations rel2 : relationsList) {
 						if(nodeId.equals(rel2.getTargetNodeId())){ //Node is target of some other link
@@ -1589,11 +1415,12 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					}
 					if(!isSameportConnected){
 						isCorrectPortsConnected = false;
-						break;
+						logger.warn("Warning : correctPortsConnected for nodeId "+nodeId+" would return false because of srcOperation "+srcOperation);
 					}
 			}
 		}
-		return isCorrectPortsConnected;
+		//return isCorrectPortsConnected;
+		return true;
 	}
 	
 
@@ -1625,42 +1452,15 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 		bluePrint.setProbeIndicator(probeLst); // In cdump probeIndicator is a string, in blueprint it should not be an array just a string
 		
 		List<Container> containerList = new ArrayList<Container>();
-		Container container = new Container();
-		BaseOperationSignature bos = new BaseOperationSignature();
-		String opearion = "";
-		List<Nodes> nodes = cdump.getNodes();
+		// Container container = new Container();
+		// BaseOperationSignature bos = new BaseOperationSignature();
+		// String opearion = "";
+		// List<Nodes> nodes = cdump.getNodes();
 		List<Relations> relationsList = cdump.getRelations();
-		Set<String> sourceNodeId = new HashSet<>();
-		Set<String> targetNodeId = new HashSet<>();
-		// if relations not equal to null i.e its contains more than one model in canvas
-		if(null != relationsList && !relationsList.isEmpty()){
-			for (Relations rlns : relationsList) {
-				sourceNodeId.add(rlns.getSourceNodeId());
-				targetNodeId.add(rlns.getTargetNodeId());
-			}
-			sourceNodeId.removeAll(targetNodeId);
-			for (Relations rltn : relationsList) {
-				if (sourceNodeId.contains(rltn.getSourceNodeId())) {
-					opearion = rltn.getSourceNodeRequirement().replace("+", OPERATION_EXTRACTOR);
-					opearion = opearion.split(OPERATION_EXTRACTOR)[0];
-					bos.setOperation_name(opearion);
-					container.setOperation_signature(bos);
-					String containerName = rltn.getSourceNodeName();
-					container.setContainer_name(containerName);
-					containerList.add(container);
-				}
-			}
-		}else{
-			// canvas contains only one model which is ML Model only
-			for(Nodes no : nodes){
-				String reqOperationName = no.getRequirements()[0].getCapability().getId();
-				bos.setOperation_name(reqOperationName);
-				container.setOperation_signature(bos);
-				container.setContainer_name(no.getName());
-				containerList.add(container);
-			}
-		}
+		// Set<String> sourceNodeId = new HashSet<>();
+		// Set<String> targetNodeId = new HashSet<>();
 		bluePrint.setInput_ports(containerList);
+
 		// 8. Get the nodes from Cdump file & set the required details in the blueprint nodes
 		logger.debug("8. Get the nodes from Cdump file & set the required details in the blueprint nodes");
 		List<Nodes> cdumpNodes = cdump.getNodes();
@@ -1752,30 +1552,34 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 			List<OperationSignatureList> oslList = new ArrayList<>();
 			OperationSignatureList osll = null;
 			NodeOperationSignature nos = null;
-			List<Container> connectedToList;
-			connectedToList = new ArrayList<>();
-			// If the relations are null or empty i.e single ML model is there in Canvas 
 			if(null != relationsList && !relationsList.isEmpty()){
+				// If the relations are not null and empty i.e if more than a single ML model is there in Canvas 
+
 				//Get the connected port 
-				String connectedPort = getConnectedPort(cdump.getRelations(), n.getNodeId());
-				for(Capabilities c : capabilities ){
-					nodeOperationName = c.getTarget().getId();
-					if(nodeOperationName.equals(connectedPort)){
-						osll = new OperationSignatureList();
-						nos = new NodeOperationSignature();
-						nos.setOperation_name(nodeOperationName);
-						nos.setInput_message_name(c.getTarget().getName()[0].getMessageName());  
-						//NodeOperationSignature input_message_name should have been array, as operation can have multiple input messages.  
-						//Its seems to be some gap
-						nos.setOutput_message_name(getOutputMessage(n.getRequirements(), nodeOperationName));
-						osll.setOperation_signature(nos);
-						containerLst = getRelations(cdump, nodeId);
-						osll.setConnected_to(containerLst);
-						oslList.add(osll);
+				List<String> connectedPorts = getOutgoingPorts(cdump.getRelations(), n.getNodeId());
+				for(String connectedPort: connectedPorts){
+					logger.warn("connectedPort is "+connectedPort);
+					for(Capabilities c : capabilities ){
+						nodeOperationName = c.getTarget().getId();
+						if(nodeOperationName.equals(connectedPort)){
+							osll = new OperationSignatureList();
+							nos = new NodeOperationSignature();
+							nos.setOperation_name(nodeOperationName);
+							nos.setInput_message_name(c.getTarget().getName()[0].getMessageName());  
+							//NodeOperationSignature input_message_name should have been array, as operation can have multiple input messages.  
+							//Its seems to be some gap
+							nos.setOutput_message_name(getOutputMessage(n.getRequirements(), nodeOperationName));
+							osll.setOperation_signature(nos);
+							containerLst = getOutgoingRelationsForNodeAndOperation(cdump, nodeId, nodeOperationName);
+							osll.setConnected_to(containerLst);
+							oslList.add(osll);
+						}
 					}
 				}
 			}else {
 				// canvas contains only one Model which is ML Model only
+				List<Container> connectedToList;
+				connectedToList = new ArrayList<>();
 				for(Capabilities c : capabilities ){
 					nodeOperationName = c.getTarget().getId();
 					osll = new OperationSignatureList();
@@ -1838,6 +1642,8 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					break;
 				}
 			}
+			logger.warn("PETER cdmsclient="+String.valueOf(cdmsClient));
+			logger.warn("PETER compSolRev="+String.valueOf(compositeSolutionRevision));
 			List<MLPArtifact> mlpArtiLst = cdmsClient.getSolutionRevisionArtifacts(solutionId,compositeSolutionRevision.getRevisionId());
 
 			// 23. Creating the Artifact from CDMSClient.
@@ -2214,22 +2020,19 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 	 * @param nodeName
 	 * @return
 	 */
-	private String getConnectedPort(List<Relations> requirements, String nodeId){
-		String result = null;
+	private List<String> getOutgoingPorts(List<Relations> requirements, String nodeId){
+		List<String> results = new ArrayList<>();
 		if(null != nodeId && nodeId.trim() != ""){
 			for(Relations r : requirements) {
 				if(nodeId.equals(r.getSourceNodeId())){
+					String result;
 					result = r.getSourceNodeRequirement().replace("+", OPERATION_EXTRACTOR);
 					result = result.split(OPERATION_EXTRACTOR)[0];
-					break;
-				} else if(nodeId.equals(r.getTargetNodeId())){
-					result = r.getTargetNodeCapability().replace("+", OPERATION_EXTRACTOR);
-					result = result.split(OPERATION_EXTRACTOR)[0];
-					break;
+					results.add(result);
 				}
 			}
 		}
-		return result;
+		return results;
 	}
 	/**
 	 * @param nodeSolutionId
@@ -2276,27 +2079,30 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 	 * @param nodeId
 	 * @return
 	 */
-	private List<Container> getRelations(Cdump cdump, String nodeId) {
+	private List<Container> getOutgoingRelationsForNodeAndOperation(Cdump cdump, String sourceNodeId, String sourceOperationName) {
 		List<Container> connectedToList;
 		Container connectedTo;
 		connectedToList = new ArrayList<>();
 		// Get the Relations from the Cdump File
 		List<Relations> cRelations = cdump.getRelations();
-		String operation = null;
 		BaseOperationSignature bos;
 
 		// Get the Relations with sourceNodeId as node id
 		for (Relations cr : cRelations) {
-			if (cr.getSourceNodeId().equals(nodeId)) {
-				// Get the targeNodeName and set it to depends_on object
-				connectedTo = new Container();
-				connectedTo.setContainer_name(cr.getTargetNodeName());
-				bos = new BaseOperationSignature();
-				operation = cr.getTargetNodeCapability().replace("+", OPERATION_EXTRACTOR);
-				operation = operation.split(OPERATION_EXTRACTOR)[0];
-				bos.setOperation_name(operation);
-				connectedTo.setOperation_signature(bos);
-				connectedToList.add(connectedTo);
+			if (cr.getSourceNodeId().equals(sourceNodeId)) {
+				String sourceOperation = cr.getSourceNodeRequirement().replace("+", OPERATION_EXTRACTOR);
+				sourceOperation = sourceOperation.split(OPERATION_EXTRACTOR)[0];
+				if (sourceOperationName.equals(sourceOperation)) {
+					// Get the targeNodeName and set it to depends_on object
+					connectedTo = new Container();
+					connectedTo.setContainer_name(cr.getTargetNodeName());
+					bos = new BaseOperationSignature();
+					String operation = cr.getTargetNodeCapability().replace("+", OPERATION_EXTRACTOR);
+					operation = operation.split(OPERATION_EXTRACTOR)[0];
+					bos.setOperation_name(operation);
+					connectedTo.setOperation_signature(bos);
+					connectedToList.add(connectedTo);
+				}
 			}
 		}
 		return connectedToList;
@@ -2347,53 +2153,6 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 			}
 		}
 		return node;
-	}
-
-	private List<String> getNodesForPosition(Cdump cdump, String position) {
-		List<String> nodeNames = new ArrayList<String>();
-		Set<String> sourceNodeId = new HashSet<>();
-		Set<String> targetNodeId = new HashSet<>();
-		List<Relations> relationsList = cdump.getRelations();
-		List<Nodes> nodes = cdump.getNodes();
-		Nodes node = null;
-		for (Relations rlns : relationsList) {
-			sourceNodeId.add(rlns.getSourceNodeId());
-			targetNodeId.add(rlns.getTargetNodeId());
-		}
-
-		if (position.equals(FIRST_NODE_POSITION)) {
-			sourceNodeId.removeAll(targetNodeId);
-			for (String nodeId : sourceNodeId) {
-				node = getNodeForId(nodes, nodeId);
-				nodeNames.add(node.getName());
-			}
-		} else if(position.equals(LAST_NODE_POSITION)){
-			targetNodeId.removeAll(sourceNodeId);
-			for (String nodeId : targetNodeId) {
-				node = getNodeForId(nodes, nodeId);
-				nodeNames.add(node.getName());
-			}
-		}
-		return nodeNames;
-	}
-
-	private String getNodeIdForPosition(Cdump cdump, String position) {
-		String nodeId = null;
-		Set<String> sourceNodeId = new HashSet<>();
-		Set<String> targetNodeId = new HashSet<>();
-		List<Relations> relationsList = cdump.getRelations();
-		for (Relations rlns : relationsList) {
-			sourceNodeId.add(rlns.getSourceNodeId());
-			targetNodeId.add(rlns.getTargetNodeId());
-		}
-		if (position.equals(FIRST_NODE_POSITION)) {
-			sourceNodeId.removeAll(targetNodeId);
-			nodeId = (sourceNodeId.iterator().hasNext() ? sourceNodeId.iterator().next() : nodeId);
-		} else if(position.equals(LAST_NODE_POSITION)){
-			targetNodeId.removeAll(sourceNodeId);
-			nodeId = (targetNodeId.iterator().hasNext() ? targetNodeId.iterator().next() : nodeId);
-		}
-		return nodeId;
 	}
 
 	public void getRestCCDSClient(CommonDataServiceRestClientImpl commonDataServiceRestClient) {
@@ -2452,92 +2211,6 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 			logger.error("Exception Occured in deleteMember() ", e);
 			throw new ServiceException(" Exception in updateCompositeSolution() ", "333","Failed to drop CompositeSolution Member");
 		}		
-	}
-	
-	private String constructPayload(Cdump cdump)
-			throws ServiceException {
-		String protoPayload;
-		
-		List<Nodes> nodes = cdump.getNodes();
-		List<Relations> relationsList = cdump.getRelations();
-		String firstNodeId = getNodeIdForPosition(cdump, FIRST_NODE_POSITION);
-		Nodes firstNode = getNodeForId(nodes, firstNodeId);
-		
-		// Construct protoPayload for composite solution without Databroker.
-		//1. Get first node protobuf file content of CP 
-		String firstNodeProtoPayload = cspfgService.getPayload(firstNode.getNodeSolutionId(), firstNode.getNodeVersion(),props.getModelImageArtifactType(), "proto");
-		Protobuf firstNodeProto = cspfgService.parseProtobuf(firstNodeProtoPayload);
-		//2. Get Last node protobuf file content of CP 
-		String lastNodeId = getNodeIdForPosition(cdump, LAST_NODE_POSITION);
-		Nodes lastNode = getNodeForId(nodes, lastNodeId);
-		String lastNodeProtoPayload = cspfgService.getPayload(lastNode.getNodeSolutionId(), lastNode.getNodeVersion(),props.getModelImageArtifactType(), "proto");
-		Protobuf lastNodeProto = cspfgService.parseProtobuf(lastNodeProtoPayload);
-		
-		List<ProtobufServiceOperation> operations = null;
-		//3. Get first node port which is connected and its corresponding input message
-		String firstNodeConnectedport = getConnectedPort(relationsList,firstNode.getNodeId());
-		List<String> firstNodeInputMessageNames = null;
-		operations = firstNodeProto.getService().getOperations();
-		for(ProtobufServiceOperation opt : operations){
-			if(opt.getName().equals(firstNodeConnectedport)){
-				firstNodeInputMessageNames = opt.getInputMessageNames();
-			}
-		}
-		//4. Get last node port which is connected.
-		String lastNodeConnectedport = getConnectedPort(relationsList,lastNode.getNodeId());
-		List<String> lastNodeOutputMessageNames = null;
-		operations = lastNodeProto.getService().getOperations();
-		for(ProtobufServiceOperation opt : operations){
-			if(opt.getName().equals(lastNodeConnectedport)) {
-				lastNodeOutputMessageNames = opt.getOutputMessageNames();
-			}
-		}
-		
-		//5. Construct Proto buf. 
-		
-		String inputMessageNames = "";
-		StringBuilder strbld = new StringBuilder();
-		for(String msgName : firstNodeInputMessageNames){
-			strbld.append(msgName);
-			strbld.append(",");
-		}
-		inputMessageNames = strbld.toString();
-		inputMessageNames = inputMessageNames.substring(0, inputMessageNames.length()-1);
-		
-		
-		String outputMessageNames = "";
-		strbld = new StringBuilder();
-		for(String msgName : lastNodeOutputMessageNames){
-			strbld.append(msgName);
-			strbld.append(",");
-		}
-		outputMessageNames = strbld.toString();
-		outputMessageNames = outputMessageNames.substring(0, outputMessageNames.length()-1);
-		
-								
-		//Construct Messages. 
-		String messageBody = null;
-		//1. input messages definitions
-		strbld = new StringBuilder();
-		for(String msgName : firstNodeInputMessageNames){
-			buildMessage(firstNodeProto, strbld, msgName);
-		}
-		//2. output messages definitions
-		for (String msgName : lastNodeOutputMessageNames) {
-			buildMessage(lastNodeProto, strbld, msgName);
-		}
-		messageBody = strbld.toString();
-		
-		//Define constant 
-		String protostr = "syntax = \"proto3\";\n"+
-					"package abcd;\n"+
-					"service Model {\n\t" +
-					"rpc %s (%s) returns (%s);\n" + "}\n";
-		
-		
-		protoPayload = String.format(protostr, firstNodeConnectedport,inputMessageNames, outputMessageNames );
-		protoPayload = protoPayload + messageBody;
-		return protoPayload;
 	}
 	
 	private StringBuilder csSolutionExtractor(String compoSolnTlkitTypeCode,
