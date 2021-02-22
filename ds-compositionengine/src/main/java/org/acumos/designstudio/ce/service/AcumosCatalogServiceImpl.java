@@ -63,7 +63,7 @@ public class AcumosCatalogServiceImpl implements IAcumosCatalog {
 	@Override
 	public String fetchJsonTOSCA(String solutionId, String version) {
 		logger.debug("fetchJsonTOSCA() : Begin");
-		logger.warn("PETER CatalogService fetchJsonTOSCA()  : Begin "+solutionID);
+		logger.warn("PETER CatalogService fetchJsonTOSCA()  : Begin "+solutionId);
 
 		String result = "";
 		String error = "{\"errorCode\" : \"%s\", \"errorDescription\" : \"%s\"}";
@@ -190,6 +190,7 @@ public class AcumosCatalogServiceImpl implements IAcumosCatalog {
 	public String readArtifact(String userId, String solutionId, String version, String artifactType)
 			throws AcumosException {
 		logger.debug("readArtifact() : Begin");
+		logger.warn("PETER AcumosCatalogService readArtifact()  : Begin "+solutionId);
 
 		String result = "";
 
@@ -234,6 +235,7 @@ public class AcumosCatalogServiceImpl implements IAcumosCatalog {
 						logger.debug("Response in String Format :  {} ", byteArrayOutputStream.toString() );
 						result = byteArrayOutputStream.toString();
 					}
+					logger.warn("PETER AcumosCatalogService getting payload from uri "+nexusURI+" is "+result);
 				} catch (NoSuchElementException | NullPointerException e) {
 					logger.error("Error : Exception in readArtifact() : Failed to fetch the artifact URI for artifactType",e);
 					throw new NoSuchElementException("Could not search the artifact URI for artifactType " + artifactType);
