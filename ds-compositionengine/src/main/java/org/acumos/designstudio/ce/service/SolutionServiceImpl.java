@@ -343,6 +343,7 @@ public class SolutionServiceImpl implements ISolutionService {
 		String results = "";
 		String resultTemplate = "{\"success\" : \"%s\", \"errorDescription\" : \"%s\"}";
 		logger.debug("addNode() : Begin  ");
+		logger.warn("PETER addNode with node "+node.toString());
 		Property[] propertyarray = node.getProperties();
 		try {
 			mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
@@ -360,6 +361,7 @@ public class SolutionServiceImpl implements ISolutionService {
 			ArrayList<String> idList = new ArrayList<>();
 			Nodes node1 = new Nodes();
 			if (nodes != null) {
+				// add node to existing list of nodes
 				for (Nodes n : nodes) {
 					idList.add(n.getNodeId());
 				}
@@ -396,6 +398,8 @@ public class SolutionServiceImpl implements ISolutionService {
 					results = String.format(resultTemplate, true, "");
 				}
 			} else {
+				// create new list of nodes
+				// this should be reorganized to eliminate the duplicate code
 				node1.setNodeId(node.getNodeId());
 				node1.setName(node.getName());
 				node1.setRequirements(node.getRequirements());
@@ -1690,6 +1694,7 @@ public class SolutionServiceImpl implements ISolutionService {
 				}
 			}
 		}
+		logger.warn("PETER updateLinkdetails: relationObj = "+relationObj.toString());
 		if (cdump.getRelations() == null) {
 			List<Relations> list = new ArrayList<>();
 			list.add(relationObj);
