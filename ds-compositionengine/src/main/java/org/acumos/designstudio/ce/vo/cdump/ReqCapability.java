@@ -56,8 +56,9 @@ public class ReqCapability implements Serializable{
 		this.name = name;
 	}
 	
-	
-	
-	
-	
+	@Override
+	public String toString() {
+		return this.getClass().getName() + "[id="+getId()+
+			",name[]="+String.join(" ; ", java.util.Arrays.toString(getName()))+"]";
+	}
 }

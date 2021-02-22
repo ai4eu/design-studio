@@ -77,8 +77,9 @@ public class Capabilities implements Serializable{
 		this.properties = properties;
 	}
 	
-	
-	
-	
-
+	@Override
+	public String toString() {
+		return this.getClass().getName() + "[id="+getId()+",name[]="+getName()+
+			",target="+getTarget().toString()+"]";
+	}
 }

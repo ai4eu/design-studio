@@ -59,6 +59,9 @@ public class CapabilityTarget implements Serializable{
 		this.id = id;
 	}
 	
-	
-
+	@Override
+	public String toString() {
+		return this.getClass().getName() + "[id="+getId()+
+			",name[]="+String.join(" ; ", java.util.Arrays.toString(getName()))+"]";
+	}
 }
