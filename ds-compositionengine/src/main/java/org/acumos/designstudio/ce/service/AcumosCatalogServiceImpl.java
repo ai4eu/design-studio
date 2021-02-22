@@ -63,6 +63,7 @@ public class AcumosCatalogServiceImpl implements IAcumosCatalog {
 	@Override
 	public String fetchJsonTOSCA(String solutionId, String version) {
 		logger.debug("fetchJsonTOSCA() : Begin");
+		logger.warn("PETER CatalogService fetchJsonTOSCA()  : Begin "+solutionID);
 
 		String result = "";
 		String error = "{\"errorCode\" : \"%s\", \"errorDescription\" : \"%s\"}";
@@ -107,6 +108,7 @@ public class AcumosCatalogServiceImpl implements IAcumosCatalog {
 						byteArrayOutputStream = getPayload(nexusURI);
 						logger.debug("Response in String Format : {}" , byteArrayOutputStream.toString() );
 						result = byteArrayOutputStream.toString();
+						logger.warn("PETER artifact from nexus uri "+nexusURI+" got "+result);
 					} else {
 						result = String.format(error, "504","Could not search the artifact URI for artifactType " + artifactType);
 					}

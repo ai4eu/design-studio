@@ -449,6 +449,7 @@ public class SolutionServiceImpl implements ISolutionService {
 		String description = "";
 		DSPayloadDto dsPayload = new DSPayloadDto();
 		logger.debug("fetchJsonTOSCA()  : Begin ");
+		logger.warn("PETER SolutionService fetchJsonTOSCA()  : Begin "+solutionID);
 		String result = "";
 		ByteArrayOutputStream byteArrayOutputStream = null;
 		cmnDataService.setRequestId(MDC.get(DSLogConstants.MDCs.REQUEST_ID));
@@ -485,12 +486,14 @@ public class SolutionServiceImpl implements ISolutionService {
 			if (null != nexusURI && !"".equals(nexusURI)) {
 				byteArrayOutputStream = getPayload(nexusURI);
 				result = byteArrayOutputStream.toString();
+				logger.warn("PETER from nexus uri "+nexusURI+" got "+result);
 				dsPayload.setPayload(result);
 				dsPayload.setDescription(description);
 				String path = DSUtil.createCdumpPath(userId, confprops.getToscaOutputFolder());
 				DSUtil.writeDataToFile(path, "acumos-cdump" + "-" + solutionID, "json", result);
 				result = mapper.writeValueAsString(dsPayload);
 				logger.debug("Response in String Format :  {} ", result );
+				logger.warn("PETER written as "+result);
 
 			} else {
 				result = "{\"error\": \"CDUMP Artifact Not Found for this solution\"}";
