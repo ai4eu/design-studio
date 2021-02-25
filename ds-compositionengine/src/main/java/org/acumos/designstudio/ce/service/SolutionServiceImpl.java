@@ -343,6 +343,7 @@ public class SolutionServiceImpl implements ISolutionService {
 		String results = "";
 		String resultTemplate = "{\"success\" : \"%s\", \"errorDescription\" : \"%s\"}";
 		logger.debug("addNode() : Begin  ");
+		logger.warn("PETER addNode with node "+node.toString());
 		Property[] propertyarray = node.getProperties();
 		try {
 			mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
@@ -360,6 +361,7 @@ public class SolutionServiceImpl implements ISolutionService {
 			ArrayList<String> idList = new ArrayList<>();
 			Nodes node1 = new Nodes();
 			if (nodes != null) {
+				// add node to existing list of nodes
 				for (Nodes n : nodes) {
 					idList.add(n.getNodeId());
 				}
@@ -396,6 +398,8 @@ public class SolutionServiceImpl implements ISolutionService {
 					results = String.format(resultTemplate, true, "");
 				}
 			} else {
+				// create new list of nodes
+				// this should be reorganized to eliminate the duplicate code
 				node1.setNodeId(node.getNodeId());
 				node1.setName(node.getName());
 				node1.setRequirements(node.getRequirements());
@@ -445,6 +449,7 @@ public class SolutionServiceImpl implements ISolutionService {
 		String description = "";
 		DSPayloadDto dsPayload = new DSPayloadDto();
 		logger.debug("fetchJsonTOSCA()  : Begin ");
+		logger.warn("PETER SolutionService fetchJsonTOSCA()  : Begin "+solutionID);
 		String result = "";
 		ByteArrayOutputStream byteArrayOutputStream = null;
 		cmnDataService.setRequestId(MDC.get(DSLogConstants.MDCs.REQUEST_ID));
@@ -481,12 +486,14 @@ public class SolutionServiceImpl implements ISolutionService {
 			if (null != nexusURI && !"".equals(nexusURI)) {
 				byteArrayOutputStream = getPayload(nexusURI);
 				result = byteArrayOutputStream.toString();
+				logger.warn("PETER from nexus uri "+nexusURI+" got "+result);
 				dsPayload.setPayload(result);
 				dsPayload.setDescription(description);
 				String path = DSUtil.createCdumpPath(userId, confprops.getToscaOutputFolder());
 				DSUtil.writeDataToFile(path, "acumos-cdump" + "-" + solutionID, "json", result);
 				result = mapper.writeValueAsString(dsPayload);
 				logger.debug("Response in String Format :  {} ", result );
+				logger.warn("PETER written as "+result);
 
 			} else {
 				result = "{\"error\": \"CDUMP Artifact Not Found for this solution\"}";
@@ -1690,6 +1697,7 @@ public class SolutionServiceImpl implements ISolutionService {
 				}
 			}
 		}
+		logger.warn("PETER updateLinkdetails: relationObj = "+relationObj.toString());
 		if (cdump.getRelations() == null) {
 			List<Relations> list = new ArrayList<>();
 			list.add(relationObj);

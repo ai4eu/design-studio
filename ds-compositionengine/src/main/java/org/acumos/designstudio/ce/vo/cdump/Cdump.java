@@ -138,5 +138,11 @@ public class Cdump implements Serializable{
 		return true;
 	}
 	
-	
+	@Override
+	public String toString() {
+		return this.getClass().getName() + "[name="+getCname()+",version="+getVersion()+
+			",nodes[]="+String.join(" ; ", java.util.Arrays.toString(getNodes().toArray()))+
+			",relations[]="+String.join(" ; ", java.util.Arrays.toString(getNodes().toArray()))+"]";
+
+	}
 }

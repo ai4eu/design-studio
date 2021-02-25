@@ -271,6 +271,7 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 			if (null == cdump) {
 				logger.debug("Error : Cdump file not found for Solution ID :   {} ", mlpSolution.getSolutionId());
 			} else {
+				logger.warn("PETER insertCompositeSolution got cdump "+cdump.toString());
 				cdump.setCname(dscs.getSolutionName());
 				cdump.setVersion(dscs.getVersion());
 				cdump.setValidSolution(false);
@@ -376,6 +377,7 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 		String cdumpFileName = "acumos-cdump" + "-" + mlpSolution.getSolutionId();
 		ObjectMapper mapper = new ObjectMapper();
 		Cdump cdump = mapper.readValue(new File(path.concat(cdumpFileName).concat(".json")), Cdump.class);
+		logger.warn("PETER updateCompositeSolution got cdump "+cdump.toString());
 		
 		if (null != mlpSolution) {
 			// 2. check the solution name with input solution name, if solution name is different then its altogether new solution.

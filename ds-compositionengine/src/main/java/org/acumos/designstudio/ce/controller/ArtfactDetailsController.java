@@ -76,6 +76,7 @@ public class ArtfactDetailsController {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				result = "Failed to fetch the TOSCA details for specified solutionId and version";				
 			}
+			logger.warn("PETER artifact fetchJsonTOSCA for  "+solutionId+" returning "+result);
 		} catch (Exception e) {
 			logger.error("Exception in fetchJsonTOSCA() ", e);
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

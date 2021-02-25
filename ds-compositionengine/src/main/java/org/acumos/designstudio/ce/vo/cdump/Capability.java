@@ -44,7 +44,7 @@ public class Capability implements Serializable{
 
 	@Override
 	public String toString() {
-		return this.getClass().getName() + "[name="+getName()+",id="+getId()+"]";
+		return "Capability[name="+getName()+",id="+getId()+"]";
 	}
 
 }
