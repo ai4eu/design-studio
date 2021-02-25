@@ -91,6 +91,7 @@ public class ProtobufGeneratorService {
 	 */
 	public String createProtoJson(String solutionId, String version, File localMetadataFile) throws ServiceException {
 		logger.debug("CreateProtoJson() started");
+		logger.warn("PETER: ProtobufGeneratorService:createProtoJson on "+localMetadataFile);
 		protoBufClass = new ProtoBufClass();
 		messageBodyList = new ArrayList<MessageBody>();
 		listOfInputAndOutputMessage = new ArrayList<String>();
@@ -101,6 +102,8 @@ public class ProtobufGeneratorService {
 		try {
 			fr = new FileReader(localMetadataFile);
 			br = new BufferedReader(fr);
+			parseLine("message google.protobuf.Empty {");
+			parseLine("}");
 			String sCurrentLine;
 			while ((sCurrentLine = br.readLine()) != null) {
 				parseLine(sCurrentLine.replace("\t", ""));
@@ -168,13 +171,13 @@ public class ProtobufGeneratorService {
 			if (line.startsWith("message")) {
 				logger.debug("costructMessage() strated");
 				isMessage = false;
-				messageBody = new MessageBody();
+				messageBody = new MessageBody(); // create empty so that next method will reuse it
 
-				messageBody = costructMessage(line, messageBody, null);
+				messageBody = costructMessage(line, messageBody, null); // need not pass messageBody or return, it is global
 
 			} else if (isMessage && !line.contains("}")) {
-				messageargumentList = new ArrayList<MessageargumentList>();
-				messageBody = costructMessage(line, messageBody, messageargumentList);
+				messageargumentList = new ArrayList<MessageargumentList>(); // this is a mystery to me, it seems the actual message arguments are stored in messageBody.
+				messageBody = costructMessage(line, messageBody, messageargumentList); // again need not pass messageBocy or return
 			} else if (isMessage && line.contains("}")) {
 				messageBodyList.add(messageBody);
 				protoBufClass.setListOfMessages(messageBodyList);
@@ -300,6 +303,8 @@ public class ProtobufGeneratorService {
 							break;
 						}
 					}
+					// sorting by tag (canonicalize messages for comparison)
+					// we would need to sort only once
 					SortComparator sortComparator = SortFactory.getComparator();
 					if (messageBody.getMessageargumentList() != null) {
 						messageBody.getMessageargumentList().add(messageargumentListInstance);
@@ -340,6 +345,7 @@ public class ProtobufGeneratorService {
 
 	private List<InputMessage> constructInputMessage(String inputParameterString) {
 		logger.debug("constructInputMessage() strated");
+		logger.warn("PETER constructInputMessage for "+inputParameterString);
 		listOfInputMessages = new ArrayList<InputMessage>();
 		try {
 
@@ -349,6 +355,7 @@ public class ProtobufGeneratorService {
 				inputMessage.setInputMessageName(inPutParameterArray[i]);
 				listOfInputMessages.add(inputMessage);
 				listOfInputAndOutputMessage.add(inputMessage.getInputMessageName());
+				logger.warn("PETER constructInputMessage for "+inputParameterString+" added "+inputMessage.getInputMessageName());
 			}
 		} catch (Exception ex) {
 			logger.error("Exception Occured  constructInputMessage()", ex);
@@ -360,6 +367,7 @@ public class ProtobufGeneratorService {
 
 	private List<OutputMessage> constructOutputMessage(String outPutParameterString) {
 		logger.debug("constructOutputMessage() strated");
+		logger.warn("PETER constructOutputMessage for "+outPutParameterString);
 		listOfOputPutMessages = new ArrayList<OutputMessage>();
 		try {
 			String[] outPutParameterArray = outPutParameterString.split(",");
@@ -368,6 +376,7 @@ public class ProtobufGeneratorService {
 				outputMessage.setOutPutMessageName(outPutParameterArray[i]);
 				listOfOputPutMessages.add(outputMessage);
 				listOfInputAndOutputMessage.add(outputMessage.getOutPutMessageName());
+				logger.warn("PETER constructInputMessage for "+inputParameterString+" added "+outputMessage.getOutPutMessageName());
 			}
 		} catch (Exception ex) {
 			logger.error("constructOutputMessage() end", ex);

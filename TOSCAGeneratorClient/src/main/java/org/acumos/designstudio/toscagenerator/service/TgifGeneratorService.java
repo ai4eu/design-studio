@@ -104,6 +104,7 @@ public class TgifGeneratorService {
 	public Artifact createTgif(String solutionID, String version, String protobuf, String metaData)
 			throws AcumosException {
 		logger.debug("--------  createTgif() Started ------------");
+		logger.warn("PETER TgifGeneratorService::createTgif with protobuf "+protobuf);
 		Artifact result = null;
 		String path = Properties.getTempFolderPath(solutionID, version);
 		JSONParser parser = new JSONParser();
@@ -160,6 +161,7 @@ public class TgifGeneratorService {
 	public Artifact createTgif(String solutionID, String version, String protobuf, String solutionName,String description)
 			throws AcumosException {
 		logger.debug("--------  createTgif() Started ------------");
+		logger.warn("PETER TgifGeneratorService::createTgif with protobuf "+protobuf);
 		Artifact result = null;
 		String path = Properties.getTempFolderPath(solutionID, version);
 		JSONParser parser = new JSONParser();
@@ -199,6 +201,7 @@ public class TgifGeneratorService {
 	 */
 	private Tgif populateTgif(String version, String solutionName, String description, JSONObject protobufJson) {
 		logger.debug("--------  populateTgif() Begin ------------");
+		logger.warn("PETER TgifGeneratorService::populateTgif with protobufJson "+protobufJson.toJSONString());
 
 		String COMPONENT_TYPE = "Docker";
 		// Set Self
