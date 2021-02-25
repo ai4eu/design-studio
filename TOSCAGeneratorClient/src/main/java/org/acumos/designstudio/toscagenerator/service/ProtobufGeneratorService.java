@@ -376,7 +376,7 @@ public class ProtobufGeneratorService {
 				outputMessage.setOutPutMessageName(outPutParameterArray[i]);
 				listOfOputPutMessages.add(outputMessage);
 				listOfInputAndOutputMessage.add(outputMessage.getOutPutMessageName());
-				logger.warn("PETER constructInputMessage for "+inputParameterString+" added "+outputMessage.getOutPutMessageName());
+				logger.warn("PETER constructInputMessage for "+outPutParameterString+" added "+outputMessage.getOutPutMessageName());
 			}
 		} catch (Exception ex) {
 			logger.error("constructOutputMessage() end", ex);
