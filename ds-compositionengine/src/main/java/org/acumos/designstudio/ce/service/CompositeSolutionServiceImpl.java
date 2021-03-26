@@ -1555,8 +1555,7 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 			if(null != relationsList && !relationsList.isEmpty()){
 				// If the relations are not null and empty i.e if more than a single ML model is there in Canvas 
 
-				//Get the connected port 
-				List<String> connectedPorts = getOutgoingPorts(cdump.getRelations(), n.getNodeId());
+				//Get the connected port (port = gRPC service, connected = input or output is connected)
 				for(String connectedPort: connectedPorts){
 					logger.warn("connectedPort is "+connectedPort);
 					for(Capabilities c : capabilities ){
@@ -2020,8 +2019,11 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 	 * @param nodeName
 	 * @return
 	 */
-	private List<String> getOutgoingPorts(List<Relations> requirements, String nodeId){
-		List<String> results = new ArrayList<>();
+	private List<String> getConnectedPorts(List<Relations> requirements, String nodeId){
+		// given a node and relations from the CDUMP,
+		// find all ports (=operation names) of that node that have
+		// either an incoming or an outgoing relation
+		Set<String> results = new HashSet<>();
 		if(null != nodeId && nodeId.trim() != ""){
 			for(Relations r : requirements) {
 				if(nodeId.equals(r.getSourceNodeId())){
@@ -2029,10 +2031,14 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					result = r.getSourceNodeRequirement().replace("+", OPERATION_EXTRACTOR);
 					result = result.split(OPERATION_EXTRACTOR)[0];
 					results.add(result);
+				} else if(nodeId.equals(r.getTargetNodeId())){
+					result = r.getTargetNodeCapability().replace("+", OPERATION_EXTRACTOR);
+					result = result.split(OPERATION_EXTRACTOR)[0];
+					results.add(result);
 				}
 			}
 		}
-		return results;
+		return new ArrayList<String>(results);
 	}
 	/**
 	 * @param nodeSolutionId
