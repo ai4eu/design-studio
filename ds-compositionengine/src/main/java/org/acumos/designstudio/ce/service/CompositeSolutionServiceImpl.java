@@ -1556,6 +1556,7 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 				// If the relations are not null and empty i.e if more than a single ML model is there in Canvas 
 
 				//Get the connected port (port = gRPC service, connected = input or output is connected)
+				List<String> connectedPorts = getConnectedPorts(cdump.getRelations(), n.getNodeId());
 				for(String connectedPort: connectedPorts){
 					logger.warn("connectedPort is "+connectedPort);
 					for(Capabilities c : capabilities ){
@@ -2032,6 +2033,7 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					result = result.split(OPERATION_EXTRACTOR)[0];
 					results.add(result);
 				} else if(nodeId.equals(r.getTargetNodeId())){
+					String result;
 					result = r.getTargetNodeCapability().replace("+", OPERATION_EXTRACTOR);
 					result = result.split(OPERATION_EXTRACTOR)[0];
 					results.add(result);
