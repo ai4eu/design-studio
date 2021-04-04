@@ -347,7 +347,7 @@
 						<image>
 							<!-- Prefix must be "acumos/" -->
 							<!-- Specify a tag to avoid default tag "latest" -->
-							<name>acumos/ds-compositionengine:${project.version}</name>
+							<name>ai4eu/ds-compositionengine:${project.version}</name>
 							<build>
 								<!-- This is the same FROM used in a Dockerfile -->
 								<from>adoptopenjdk/openjdk11-openj9:alpine-jre</from>
