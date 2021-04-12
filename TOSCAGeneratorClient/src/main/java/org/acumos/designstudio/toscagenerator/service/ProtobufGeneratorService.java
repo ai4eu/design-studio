@@ -458,25 +458,27 @@ public class ProtobufGeneratorService {
 			List<MessageargumentList> sourceMessageargumentList = sourceMessage.getMessageargumentList();
 			ComplexType complexType = null;
 
-			for (MessageargumentList sourceMsgArgument : sourceMessageargumentList) {
-				sourceMsgArgumentType = sourceMsgArgument.getType();
-				msgArgument = new MessageargumentList();
-				msgArgument.setRole(sourceMsgArgument.getRole());
-				msgArgument.setType(sourceMsgArgumentType);
-				msgArgument.setName(sourceMsgArgument.getName());
-				msgArgument.setTag(parentTag + sourceMsgArgument.getTag());
-				// check source message argument is not basic type then
-				if (!basicProtobufTypesList.contains(sourceMsgArgumentType)) {
-					complexType = new ComplexType();
-					MessageBody complexBody = constructExpandedMessageBody(sourceMsgArgumentType, listOfMessages,
-							parentTag + sourceMsgArgument.getTag());
-					if (null != complexBody) {
-						complexType.setMessageName(complexBody.getMessageName());
-						complexType.setMessageargumentList(complexBody.getMessageargumentList());
+			if (null != sourceMessageargumentList) {
+				for (MessageargumentList sourceMsgArgument : sourceMessageargumentList) {
+					sourceMsgArgumentType = sourceMsgArgument.getType();
+					msgArgument = new MessageargumentList();
+					msgArgument.setRole(sourceMsgArgument.getRole());
+					msgArgument.setType(sourceMsgArgumentType);
+					msgArgument.setName(sourceMsgArgument.getName());
+					msgArgument.setTag(parentTag + sourceMsgArgument.getTag());
+					// check source message argument is not basic type then
+					if (!basicProtobufTypesList.contains(sourceMsgArgumentType)) {
+						complexType = new ComplexType();
+						MessageBody complexBody = constructExpandedMessageBody(sourceMsgArgumentType, listOfMessages,
+								parentTag + sourceMsgArgument.getTag());
+						if (null != complexBody) {
+							complexType.setMessageName(complexBody.getMessageName());
+							complexType.setMessageargumentList(complexBody.getMessageargumentList());
+						}
+						msgArgument.setComplexType(complexType);
 					}
-					msgArgument.setComplexType(complexType);
+					messageargumentList.add(msgArgument);
 				}
-				messageargumentList.add(msgArgument);
 			}
 			result.setMessageargumentList(messageargumentList);
 		}
