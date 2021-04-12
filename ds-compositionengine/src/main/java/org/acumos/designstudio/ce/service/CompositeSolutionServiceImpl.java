@@ -1561,6 +1561,7 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					logger.warn("connectedPort is "+connectedPort);
 					for(Capabilities c : capabilities ){
 						nodeOperationName = c.getTarget().getId();
+						logger.warn("  comparing with nodeOperationName "+nodeOperationName);
 						if(nodeOperationName.equals(connectedPort)){
 							osll = new OperationSignatureList();
 							nos = new NodeOperationSignature();
@@ -1592,6 +1593,7 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					oslList.add(osll);
 				}
 			}
+			logger.warn("oslList of node with nodeName "+nodeName+" has "+oslList.size()+" elements");
 			bpnode.setOperation_signature_list(oslList);
 			// 14. Add the nodedetails to bluepring nodes list
 			bpnodes.add(bpnode);
