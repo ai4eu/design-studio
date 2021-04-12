@@ -1644,8 +1644,6 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					break;
 				}
 			}
-			logger.warn("PETER cdmsclient="+String.valueOf(cdmsClient));
-			logger.warn("PETER compSolRev="+String.valueOf(compositeSolutionRevision));
 			List<MLPArtifact> mlpArtiLst = cdmsClient.getSolutionRevisionArtifacts(solutionId,compositeSolutionRevision.getRevisionId());
 
 			// 23. Creating the Artifact from CDMSClient.
