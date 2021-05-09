@@ -357,7 +357,7 @@ public class SolutionControllerTest {
 		assertNotNull(req);
 		assertNotNull(reqCap);
 		assertNotNull(target);
-		assertEquals("Node1", node.getName());
+		assertEquals("node1", node.getName());
 		assertEquals("1", cap.getId());
 		assertEquals("ReqName", req.getName());
 		assertEquals("200", data.getNtype());
@@ -456,7 +456,7 @@ public class SolutionControllerTest {
 		assertNotNull(req);
 		assertNotNull(reqCap);
 		assertNotNull(target);
-		assertEquals("Node2", node.getName());
+		assertEquals("node2", node.getName());
 		assertEquals("1", cap.getId());
 		assertEquals("ReqName", req.getName());
 		assertEquals("200", data.getNtype());
@@ -556,7 +556,7 @@ public class SolutionControllerTest {
 		assertNotNull(req);
 		assertNotNull(reqCap);
 		assertNotNull(target);
-		assertEquals("DM", node.getName());
+		assertEquals("dm", node.getName());
 		assertEquals("1", cap.getId());
 		assertEquals("ReqName", req.getName());
 		assertEquals("200", data.getNtype());
@@ -580,7 +580,7 @@ public class SolutionControllerTest {
 		Nodes node = getNode();
 
 		assertNotNull(node);
-		assertEquals("Node9", node.getName());
+		assertEquals("node9", node.getName());
 
 		InterceptorRegistry registry = new InterceptorRegistry();
 		Mockito.doNothing().when(handlerInterceptorConfiguration).addInterceptors(registry);

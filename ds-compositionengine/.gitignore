@@ -4,3 +4,5 @@
 /bin/
 /logs/
 /target/
+/ds-compositionengine.iml
+/.idea/

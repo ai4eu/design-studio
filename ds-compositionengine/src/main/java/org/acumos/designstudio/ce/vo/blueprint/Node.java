@@ -41,7 +41,7 @@ public class Node implements Serializable {
 		return container_name;
 	}
 	public void setContainer_name(String container_name) {
-		this.container_name = container_name;
+		this.container_name = container_name.toLowerCase();
 	}
 	public String getImage() {
 		return image;
