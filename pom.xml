@@ -13,7 +13,6 @@
 	</properties>
 	<modules>
 		<!-- Child modules do NOT name this parent. -->
-		<module>TOSCAGeneratorClient</module>
 		<module>ds-compositionengine</module>
 		<module>csvdatabroker</module>
 		<module>gdmservice</module>

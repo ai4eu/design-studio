@@ -1,6 +1,8 @@
 # Acumos Design Studio 
 
-This Gerrit repository contain code for 1. ds-compositionengine & 2. TOSCAModelGeneratorClient. 
+This Gerrit repository contain code for ds-compositionengine 
+
+TOSCAModelGeneratorClient has been moved to onboarding 
 
 Please see the documentation in the "docs" folder.
 
