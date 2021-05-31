@@ -260,6 +260,7 @@ public class CompositeSolutionProtoFileGeneratorServiceImpl implements IComposit
 		String inputParameterString = "";
 		String outputParameterString = "";
 
+		// here we need to add streaming
 		String line1 = line.split("returns")[0];
 		operationType = line1.split(" ", 2)[0].trim();
 		String line2 = line1.split(" ", 2)[1].replace(" ", "").replace("(", "%br%").replace(")", "").trim();
@@ -282,6 +283,7 @@ public class CompositeSolutionProtoFileGeneratorServiceImpl implements IComposit
 		operation.setType(operationType);
 		operation.setInputMessageNames(inputParamList);
 		operation.setOutputMessageNames(outputParamList);
+		// operation needs to be extended to permit all 4 rpc types (or is it already operationType?)
 		return operation;
 	}
 	
