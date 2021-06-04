@@ -367,7 +367,7 @@ public class SolutionServiceImpl implements ISolutionService {
 					results = String.format(resultTemplate, false,
 							"Node Id already exists – cannot perform the requested operation");
 				} else {
-					logger.warning("XXX SolutionServiceImpl addNode "+node.toString());
+					logger.warn("XXX SolutionServiceImpl addNode "+node.toString());
 					node1.setNodeId(node.getNodeId());
 					node1.setName(node.getName());
 					node1.setRequirements(node.getRequirements());
