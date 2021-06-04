@@ -130,7 +130,7 @@ public class AcumosCatalogServiceImpl implements IAcumosCatalog {
 		} else {
 			result = String.format(error, "502","Failed to fetch the solutionRevisionId for " + solutionId + " with version " + version);
 		}
-		logger.debug("fetchJsonTOSCA() : End");
+		logger.warn("fetchJsonTOSCA() : End with result "+result);
 		return result;
 	}
 
