@@ -67,7 +67,7 @@ public class ArtfactDetailsController {
 	public String fetchJsonTOSCA(@RequestParam(value = "userId", required = true) String userId,
 			@RequestParam(value = "solutionId", required = true) String solutionId,
 			@RequestParam(value = "version", required = true) String version, HttpServletResponse response) {
-		logger.debug("fetchJsonTOSCA() : Begin");
+		logger.warn("ArtifDetCont fetchJsonTOSCA() : Begin" + solutionId);
 		String result = "";
 		try {
 			result = iacumosCatalog.readArtifact(userId, SanitizeUtils.sanitize(solutionId), version, props.getArtifactType().trim());
@@ -81,7 +81,7 @@ public class ArtfactDetailsController {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			result = e.getMessage();
 		}
-		logger.debug("fetchJsonTOSCA() : End");
+		logger.warn("ArtifDetCont fetchJsonTOSCA() : End" + result);
 		return result;
 	}
 
@@ -100,7 +100,7 @@ public class ArtfactDetailsController {
 	public String fetchProtoBufJSON(@RequestParam(value = "userId", required = true) String userId,
 			@RequestParam(value = "solutionId", required = true) String solutionId,
 			@RequestParam(value = "version", required = true) String version) {
-		logger.debug("fetchProtoBufJSON() : Begin");
+		logger.warn("ArtifDetCont fetchProtoBufJSON() : Begin"+solutionId);
 
 		String resultTemplate = "{\"protobuf_json\" : %s,\n \"success\" : \"%s\",\n \"errorMessage\" : \"%s\"}";
 		String result = "";
@@ -116,7 +116,7 @@ public class ArtfactDetailsController {
 			logger.error("Exception in fetchProtoBufJSON() ", e);
 			resultTemplate = String.format(resultTemplate, null, false, e.getMessage());
 		}
-		logger.debug("fetchProtoBufJSON() : End");
+		logger.warn("ArtifDetCont fetchProtoBufJSON() : End"+result);
 		return resultTemplate;
 	}
 

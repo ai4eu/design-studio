@@ -187,7 +187,7 @@ public class AcumosCatalogServiceImpl implements IAcumosCatalog {
 	@Override
 	public String readArtifact(String userId, String solutionId, String version, String artifactType)
 			throws AcumosException {
-		logger.debug("readArtifact() : Begin");
+		logger.warn("AcuCatSrv readArtifact() : Begin"+solutionId+" "+artifactType);
 
 		String result = "";
 
@@ -251,7 +251,7 @@ public class AcumosCatalogServiceImpl implements IAcumosCatalog {
 		} else {
 			throw new ServiceException("  Solution version details not found ", "501","Could not search the artifact URI for artifactType " + artifactType);
 		}
-		logger.debug("readArtifact() : End");
+		logger.warn("AcuCatSrv readArtifact() : End"+result);
 		return result;
 	}
 
