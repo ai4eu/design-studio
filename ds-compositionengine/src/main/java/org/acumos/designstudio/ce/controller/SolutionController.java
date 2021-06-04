@@ -222,6 +222,7 @@ public class SolutionController {
 			@RequestParam(value = "cid", required = false) String cid, @RequestBody @Valid Nodes node) {
 		String results = "";
 		logger.debug("addNode()  : Begin");
+		logger.debug("XXX /addNode node "+node.toString());
 		try {
 
 			boolean validNode = validateNode(node);
