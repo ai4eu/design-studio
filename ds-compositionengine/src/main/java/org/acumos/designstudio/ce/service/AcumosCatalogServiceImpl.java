@@ -105,7 +105,7 @@ public class AcumosCatalogServiceImpl implements IAcumosCatalog {
 
 					if (null != nexusURI) {
 						byteArrayOutputStream = getPayload(nexusURI);
-						logger.debug("Response in String Format : {}" , byteArrayOutputStream.toString() );
+						logger.warn("fetchJsonTOSCA Response in String Format : {}" , byteArrayOutputStream.toString() );
 						result = byteArrayOutputStream.toString();
 					} else {
 						result = String.format(error, "504","Could not search the artifact URI for artifactType " + artifactType);
