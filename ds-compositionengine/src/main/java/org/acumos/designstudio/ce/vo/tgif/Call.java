@@ -22,81 +22,76 @@ package org.acumos.designstudio.ce.vo.tgif;
 
 import java.io.Serializable;
 
-public class Call implements Serializable{
-	
+public class Call implements Serializable {
+
 	private static final long serialVersionUID = 1L;
-	
 	private String config_key;
-	private boolean inputStream;
-	private boolean outputStream;
 	private Request request;
 	private Response response;
-	
-	
-	public Call(){
-		inputStream = false;
-		outputStream = false;
+
+	public Call() {
+
 	}
-	
+
 	/**
 	 * 
 	 * @param config_key
-	 * 			configKey
+	 *            Config key
 	 * @param request
-	 * 			request
+	 *            Request
 	 * @param response
-	 * 			response
+	 *            Response
 	 */
-	public Call(String config_key, Request request, Response response, boolean isInputStream, boolean isOutputStream) {
+	public Call(String config_key, Request request, Response response) {
 		super();
 		this.config_key = config_key;
 		this.request = request;
 		this.response = response;
-		this.inputStream = isInputStream;
-		this.outputStream = isOutputStream;
 	}
+
 	/**
 	 * @return the config_key
 	 */
 	public String getConfig_key() {
 		return config_key;
 	}
+
 	/**
-	 * @param config_key the config_key to set
+	 * @param config_key
+	 *            the config_key to set
 	 */
 	public void setConfig_key(String config_key) {
 		this.config_key = config_key;
 	}
+
 	/**
 	 * @return the request
 	 */
 	public Request getRequest() {
 		return request;
 	}
+
 	/**
-	 * @param request the request to set
+	 * @param request
+	 *            the request to set
 	 */
 	public void setRequest(Request request) {
 		this.request = request;
 	}
+
 	/**
 	 * @return the response
 	 */
 	public Response getResponse() {
 		return response;
 	}
+
 	/**
-	 * @param response the response to set
+	 * @param response
+	 *            the response to set
 	 */
 	public void setResponse(Response response) {
 		this.response = response;
 	}
-	
-	public boolean isInputStream() {
-		return inputStream;
-	}
 
-	public boolean isOutputStream() {
-		return outputStream;
-	}
 }
