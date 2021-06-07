@@ -112,11 +112,13 @@ public class TGIFTest {
 		call.setConfig_key("config_key");
 		call.setRequest(request);
 		call.setResponse(response);
-		Call call1 = new Call("config_key", request, response);
+		Call call1 = new Call("config_key", request, response, false, false);
 		logger.debug("result  {} ",  call1);
 		call.getConfig_key();
 		call.getRequest();
 		call.getResponse();
+		call.isInputStream();
+		call.isOutputStream();
 
 		Provide provider = new Provide();
 		provider.setRequest(request);
