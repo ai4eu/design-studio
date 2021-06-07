@@ -25,26 +25,28 @@ import java.io.Serializable;
 import org.json.simple.JSONArray;
 
 public class Request implements Serializable {
-	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 8483844197295612388L;
+
+	private boolean streaming;
 	private JSONArray format;
 	private String version;
 
 	public Request() {
-
+		streaming = false;
 	}
 
 	/**
 	 * 
 	 * @param format
-	 *            JSONArray
+	 *            JSON Array
 	 * @param version
-	 *            String
+	 *            Version
 	 */
-	public Request(JSONArray format, String version) {
+	public Request(JSONArray format, String version, boolean isStreaming) {
 		super();
 		this.format = format;
 		this.version = version;
+		this.streaming = isStreaming;
 	}
 
 	/**
@@ -77,4 +79,7 @@ public class Request implements Serializable {
 		this.version = version;
 	}
 
+	public boolean isStreaming() {
+		return this.streaming;
+	}
 }
