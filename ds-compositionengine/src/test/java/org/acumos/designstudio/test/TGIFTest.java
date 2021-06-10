@@ -100,7 +100,7 @@ public class TGIFTest {
 		request.getFormat();
 		request.getFormat();
 
-		Response response1 = new Response(new org.json.simple.JSONArray(), "version", false);
+		Response response1 = new Response(new org.json.simple.JSONArray(), "version");
 		logger.debug("result  {} ",  response1);
 		Response response = new Response();
 		response.setFormat(new org.json.simple.JSONArray());

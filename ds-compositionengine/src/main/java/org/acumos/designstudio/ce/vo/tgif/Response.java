@@ -43,7 +43,7 @@ public class Response implements Serializable {
 	 * @param version
 	 *            Version string
 	 */
-	public Response(JSONArray format, String version, boolean isStreaming) {
+	public Response(JSONArray format, String version) {
 		super();
 		this.format = format;
 		this.version = version;
