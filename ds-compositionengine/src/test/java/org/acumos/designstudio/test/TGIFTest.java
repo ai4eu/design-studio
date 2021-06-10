@@ -92,7 +92,7 @@ public class TGIFTest {
 		stream.getPublishes();
 		stream.getSubscribes();
 
-		Request request1 = new Request(new org.json.simple.JSONArray(), "version");
+		Request request1 = new Request(new org.json.simple.JSONArray(), "version", false);
 		logger.debug("result  {} ",  request1);
 		Request request = new Request();
 		request.setFormat(new org.json.simple.JSONArray());
@@ -100,7 +100,7 @@ public class TGIFTest {
 		request.getFormat();
 		request.getFormat();
 
-		Response response1 = new Response(new org.json.simple.JSONArray(), "version");
+		Response response1 = new Response(new org.json.simple.JSONArray(), "version", false);
 		logger.debug("result  {} ",  response1);
 		Response response = new Response();
 		response.setFormat(new org.json.simple.JSONArray());
