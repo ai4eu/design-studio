@@ -32,6 +32,7 @@ public class CapabilityTarget implements Serializable{
 	private static final long serialVersionUID = 1915608769079919859L;
 	
 	private Message[] name;
+	private boolean stream;
 	private String id;
 	
 	/**
@@ -58,7 +59,13 @@ public class CapabilityTarget implements Serializable{
 	public void setId(String id) {
 		this.id = id;
 	}
-	
-	
+
+	@Override
+	public String toString() {
+		if (name.length > 0)
+			return "CapabilityTarget["+this.id+",stream="+stream+",name="+name[0].toString()+"]";
+		else
+			return "CapabilityTarget["+this.id+",stream="+stream+",name=<empty>]";
+	}
 
 }

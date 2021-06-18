@@ -29,6 +29,7 @@ public class ReqCapability implements Serializable{
 	private static final long serialVersionUID = -1215951868789856113L;
 	
 	private String id;
+	boolean stream;
 	private Message[] name;
 	
 	/**
@@ -55,13 +56,13 @@ public class ReqCapability implements Serializable{
 	public void setName(Message[] name) {
 		this.name = name;
 	}
-	
+
 	@Override
 	public String toString() {
 		if (name.length > 0)
-			return "ReqCapability["+this.id+",name="+name[0].toString()+"]";
+			return "ReqCapability["+this.id+",stream="+stream+",name="+name[0].toString()+"]";
 		else
-			return "ReqCapability["+this.id+",name=<empty>]";
+			return "ReqCapability["+this.id+",stream="+stream+",name=<empty>]";
 
 	}
 	
