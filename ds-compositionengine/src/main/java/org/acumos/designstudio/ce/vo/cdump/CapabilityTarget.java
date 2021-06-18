@@ -53,6 +53,14 @@ public class CapabilityTarget implements Serializable{
 	public String getId() {
 		return id;
 	}
+
+	public void setStream(boolean stream) {
+		this.stream = stream;
+	}
+	public boolean getStream() {
+		return stream;
+	}
+
 	/**
 	 * @param id the id to set
 	 */

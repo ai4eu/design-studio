@@ -44,6 +44,14 @@ public class ReqCapability implements Serializable{
 	public void setId(String id) {
 		this.id = id;
 	}
+
+	public void setStream(boolean stream) {
+		this.stream = stream;
+	}
+	public boolean getStream() {
+		return stream;
+	}
+
 	/**
 	 * @return the name
 	 */
