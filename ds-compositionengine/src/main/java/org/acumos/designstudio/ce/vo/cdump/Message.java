@@ -55,8 +55,13 @@ public class Message implements Serializable{
 	public void setMessageargumentList(Argument[] messageargumentList) {
 		this.messageargumentList = messageargumentList;
 	}
-		
-	
-	
 
+	@Override
+	public String toString() {
+		if (name.length > 0)
+			return "ReqCapability["+this.id+",name="+name[0].toString()+"]";
+		else
+			return "ReqCapability["+this.id+",name=<empty>]";
+
+	}
 }
