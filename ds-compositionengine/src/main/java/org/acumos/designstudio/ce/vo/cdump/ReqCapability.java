@@ -56,8 +56,13 @@ public class ReqCapability implements Serializable{
 		this.name = name;
 	}
 	
-	
-	
-	
+	@Override
+	public String toString() {
+		if (name.length > 0)
+			return "ReqCapability["+this.id+"name="+name[0].toString()+"]";
+		else
+			return "ReqCapability["+this.id+"name=<empty>]";
+
+	}
 	
 }

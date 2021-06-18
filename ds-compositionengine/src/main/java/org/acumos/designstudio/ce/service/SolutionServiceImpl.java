@@ -359,6 +359,7 @@ public class SolutionServiceImpl implements ISolutionService {
 			List<Nodes> nodes = cdump.getNodes();
 			ArrayList<String> idList = new ArrayList<>();
 			Nodes node1 = new Nodes();
+			logger.warn("XXX SolutionServiceImpl addNode "+node.toString());
 			if (nodes != null) {
 				for (Nodes n : nodes) {
 					idList.add(n.getNodeId());
@@ -367,7 +368,6 @@ public class SolutionServiceImpl implements ISolutionService {
 					results = String.format(resultTemplate, false,
 							"Node Id already exists – cannot perform the requested operation");
 				} else {
-					logger.warn("XXX SolutionServiceImpl addNode "+node.toString());
 					node1.setNodeId(node.getNodeId());
 					node1.setName(node.getName());
 					node1.setRequirements(node.getRequirements());
