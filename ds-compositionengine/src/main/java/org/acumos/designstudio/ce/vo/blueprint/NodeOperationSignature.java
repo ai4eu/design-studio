@@ -26,7 +26,9 @@ public class NodeOperationSignature extends BaseOperationSignature {
 	private static final long serialVersionUID = 7867606266539774888L;
 
 	private String input_message_name;
+	private boolean input_message_stream;
 	private String output_message_name;
+	private boolean output_message_stream;
 	
 	/**
 	 * @return the input_message_name
@@ -40,6 +42,13 @@ public class NodeOperationSignature extends BaseOperationSignature {
 	public void setInput_message_name(String input_message_name) {
 		this.input_message_name = input_message_name;
 	}
+	public boolean getInput_message_stream() {
+		return input_message_stream;
+	}
+	public void setInput_message_stream(boolean input_message_stream) {
+		this.input_message_stream = input_message_stream;
+	}
+
 	/**
 	 * @return the output_message_name
 	 */
@@ -52,7 +61,11 @@ public class NodeOperationSignature extends BaseOperationSignature {
 	public void setOutput_message_name(String output_message_name) {
 		this.output_message_name = output_message_name;
 	}
-	
-	
-	
+	public boolean getOutput_message_stream() {
+		return output_message_stream;
+	}
+	public void setOutput_message_stream(boolean output_message_stream) {
+		this.output_message_stream = output_message_stream;
+	}
+
 }
