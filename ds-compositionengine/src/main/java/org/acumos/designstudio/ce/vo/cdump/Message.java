@@ -55,8 +55,10 @@ public class Message implements Serializable{
 	public void setMessageargumentList(Argument[] messageargumentList) {
 		this.messageargumentList = messageargumentList;
 	}
-		
-	
-	
 
+	@Override
+	public String toString() {
+		return "Message["+messageName+","+messageargumentList.length+" arguments]";
+
+	}
 }
