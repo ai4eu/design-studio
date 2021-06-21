@@ -23,7 +23,7 @@
 
 	<groupId>org.acumos.design-studio</groupId>
 	<artifactId>ds-compositionengine</artifactId>
-	<version>3.0.8-ai4eu</version>
+	<version>3.0.9-ai4eu</version>
 	<packaging>jar</packaging>
 	<name>Design Studio Composition Engine</name>
 
