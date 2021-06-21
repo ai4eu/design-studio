@@ -1565,9 +1565,8 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 							osll = new OperationSignatureList();
 							nos = new NodeOperationSignature();
 							nos.setOperation_name(nodeOperationName);
+
 							nos.setInput_message_name(c.getTarget().getName()[0].getMessageName());  
-							//NodeOperationSignature input_message_name should have been array, as operation can have multiple input messages.  
-							//Its seems to be some gap
 							nos.setOutput_message_name(getOutputMessage(n.getRequirements(), nodeOperationName));
 							osll.setOperation_signature(nos);
 							containerLst = getOutgoingRelationsForNodeAndOperation(cdump, nodeId, nodeOperationName);
@@ -2004,9 +2003,6 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 				capability = r.getCapability();
 				if(capability.getId().equals(nodeOperationName)){
 					result = capability.getName()[0].getMessageName(); 
-					//NodeOperationSignature output_message_name should have been array, as operation can have multiple output messages.  
-					//Its seems to be some gap
-					
 				}
 			}
 		}
