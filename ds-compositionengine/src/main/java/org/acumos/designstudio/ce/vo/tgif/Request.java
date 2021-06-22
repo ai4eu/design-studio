@@ -27,11 +27,12 @@ import org.json.simple.JSONArray;
 public class Request implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
+	private boolean streaming;
 	private JSONArray format;
 	private String version;
 
 	public Request() {
-
+		streaming = false;
 	}
 
 	/**
@@ -41,10 +42,11 @@ public class Request implements Serializable {
 	 * @param version
 	 *            String
 	 */
-	public Request(JSONArray format, String version) {
+	public Request(JSONArray format, String version, boolean isStreaming) {
 		super();
 		this.format = format;
 		this.version = version;
+		this.streaming = isStreaming;
 	}
 
 	/**
@@ -77,4 +79,7 @@ public class Request implements Serializable {
 		this.version = version;
 	}
 
+	public boolean isStreaming() {
+		return this.streaming;
+	}
 }

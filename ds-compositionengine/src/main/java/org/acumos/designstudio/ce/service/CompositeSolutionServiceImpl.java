@@ -1562,13 +1562,19 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 					for(Capabilities c : capabilities ){
 						nodeOperationName = c.getTarget().getId();
 						if(nodeOperationName.equals(connectedPort)){
+							ReqCapability ocap = getOutputCapability(n.getRequirements(), nodeOperationName);
+
 							osll = new OperationSignatureList();
 							nos = new NodeOperationSignature();
+
 							nos.setOperation_name(nodeOperationName);
+
 							nos.setInput_message_name(c.getTarget().getName()[0].getMessageName());  
-							//NodeOperationSignature input_message_name should have been array, as operation can have multiple input messages.  
-							//Its seems to be some gap
-							nos.setOutput_message_name(getOutputMessage(n.getRequirements(), nodeOperationName));
+							nos.setInput_message_stream(c.getTarget().getStream());
+
+							nos.setOutput_message_name(ocap.getName()[0].getMessageName());
+							nos.setOutput_message_stream(ocap.getStream());
+
 							osll.setOperation_signature(nos);
 							containerLst = getOutgoingRelationsForNodeAndOperation(cdump, nodeId, nodeOperationName);
 							osll.setConnected_to(containerLst);
@@ -1582,11 +1588,13 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 				connectedToList = new ArrayList<>();
 				for(Capabilities c : capabilities ){
 					nodeOperationName = c.getTarget().getId();
+					ReqCapability ocap = getOutputCapability(n.getRequirements(), nodeOperationName);
+
 					osll = new OperationSignatureList();
 					nos = new NodeOperationSignature();
 					nos.setOperation_name(nodeOperationName);
 					nos.setInput_message_name(c.getTarget().getName()[0].getMessageName());  
-					nos.setOutput_message_name(getOutputMessage(n.getRequirements(), nodeOperationName));
+					nos.setOutput_message_name(ocap.getName()[0].getMessageName());
 					osll.setOperation_signature(nos);
 					osll.setConnected_to(connectedToList);
 					oslList.add(osll);
@@ -1995,23 +2003,19 @@ public class CompositeSolutionServiceImpl implements ICompositeSolutionService {
 	 * @param nodeOperationName
 	 * @return
 	 */
-	private String getOutputMessage(Requirements[] requirements, String nodeOperationName) {
-		String result = null;
+	private ReqCapability getOutputCapability(Requirements[] requirements, String nodeOperationName) {
 		List<Requirements> requirementLst = Arrays.asList(requirements);
 		if(null != nodeOperationName && nodeOperationName.trim() != ""){
 			ReqCapability capability = null; 
 			for(Requirements r : requirementLst) {
 				capability = r.getCapability();
 				if(capability.getId().equals(nodeOperationName)){
-					result = capability.getName()[0].getMessageName(); 
-					//NodeOperationSignature output_message_name should have been array, as operation can have multiple output messages.  
-					//Its seems to be some gap
-					
+					return capability;
 				}
 			}
 		}
 		
-		return result;
+		return null;
 	}
 
 	/**
